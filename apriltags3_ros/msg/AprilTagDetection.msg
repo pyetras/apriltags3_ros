@@ -13,6 +13,6 @@ float64[] size
 # four corners of all member tags.
 geometry_msgs/PoseWithCovarianceStamped pose
 
-# Pixel coordinates of the edges of detected QR code in the image. The order is
-# Counter-clockwise, starting at the bottom left edge.
-geometry_msgs/Point[] image_edge
+# Pixel coordinates of the corners of detected QR code in the image. The order is
+# Counter-clockwise, starting at the bottom left corner.
+geometry_msgs/Point[] corner

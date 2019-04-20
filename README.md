@@ -6,10 +6,10 @@ This is a Robot Operating System (ROS) wrapper of the [AprilTags 2 visual fiduci
 **Maintainer**: Piotr Sokolski, pietraswithin@gmail.com  
 **Affiliation**: NASA Jet Propulsion Laboratory, California Institute of Technology
 
-Changes added since forking from the original library:
+## Changes added since forking from the original library:
 
 - Bump AprilTags version to v3.
-- Publishing the pixel coordinates of edges of detected QR codes.
+- Publishing the pixel coordinates of corners of detected QR codes.
 
 # Contributing
 

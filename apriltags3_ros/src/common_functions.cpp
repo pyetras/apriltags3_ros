@@ -157,6 +157,14 @@ AprilTagDetectionArray TagDetector::detectTags (
                                   .buf = gray_image.data
   };
 
+  cv::Mat sharpen_kernel(3,3,CV_32F,cv::Scalar(0));
+  sharpen_kernel.at<float>(1,1)=5.0;
+  sharpen_kernel.at<float>(0,1)=-1.0;
+  sharpen_kernel.at<float>(2,1)=-1.0;
+  sharpen_kernel.at<float>(1,0)=-1.0;
+  sharpen_kernel.at<float>(1,2)=-1.0;
+  cv::filter2D(gray_image, gray_image, gray_image.depth(), sharpen_kernel);
+
   image_geometry::PinholeCameraModel camera_model;
   camera_model.fromCameraInfo(camera_info);
 
@@ -296,7 +304,7 @@ AprilTagDetectionArray TagDetector::detectTags (
       point.x = detection->p[i][0];
       point.y = detection->p[i][1];
       point.z = 0.;
-      tag_detection.image_edge.push_back(point);
+      tag_detection.corner.push_back(point);
     }
 
     tag_detection_array.detections.push_back(tag_detection);
@@ -338,7 +346,7 @@ AprilTagDetectionArray TagDetector::detectTags (
 
       std::copy(bundlePixelPoints[bundleName].begin(),
         bundlePixelPoints[bundleName].end(),
-        std::back_inserter(tag_detection.image_edge));
+        std::back_inserter(tag_detection.corner));
       tag_detection_array.detections.push_back(tag_detection);
       detection_names.push_back(bundle.name());
     }

@@ -19,9 +19,6 @@
 #   ]
 standalone_tags:
   [
-    { id: 48, size: 0.04 },
-    # { id: 0, size: 0.056 },
-    # { id: 121, size: 0.056 }
   ]
 # ## Tag bundle definitions
 # ### Remarks
@@ -46,12 +43,4 @@ standalone_tags:
 #   ]
 tag_bundles:
   [
-    {
-      name: 'racetrack',
-      layout:
-        [
-          {id: 0, size: 0.056, x: 0.0000, y: 0.0000, z: 0.0000, qw: 1.0000, qx: 0.0000, qy: 0.0000, qz: 0.0000},
-          {id: 121, size: 0.056, x: 0.1256, y: 0, z: 0, qw: 1.0, qx: 0, qy: 0, qz: 0.0}
-        ]
-    }
   ]

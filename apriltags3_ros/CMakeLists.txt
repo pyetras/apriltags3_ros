@@ -117,7 +117,13 @@ target_link_libraries(${PROJECT_NAME}_single_image_client_node
   ${catkin_LIBRARIES}
 )
 
-install(TARGETS ${PROJECT_NAME}_continuous_node ${PROJECT_NAME}_single_image_server_node ${PROJECT_NAME}_single_image_client_node
+install(TARGETS
+        common
+        continuous_detector
+        single_image_detector
+        ${PROJECT_NAME}_continuous_node
+        ${PROJECT_NAME}_single_image_server_node
+        ${PROJECT_NAME}_single_image_client_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

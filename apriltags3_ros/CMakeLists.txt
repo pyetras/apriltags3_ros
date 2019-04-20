@@ -26,7 +26,7 @@ find_package(OpenCV REQUIRED)
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -115,4 +115,26 @@ add_dependencies(${PROJECT_NAME}_single_image_client_node ${PROJECT_NAME}_genera
 target_link_libraries(${PROJECT_NAME}_single_image_client_node
   common
   ${catkin_LIBRARIES}
+)
+
+install(TARGETS ${PROJECT_NAME}_continuous_node ${PROJECT_NAME}_single_image_server_node ${PROJECT_NAME}_single_image_client_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(FILES
+  launch/continuous_detection.launch
+  launch/single_image_client.launch
+  launch/single_image_server.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+)
+
+install(FILES
+  config/settings.yaml
+  config/tags.yaml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
+)
+install(FILES nodelet_plugins.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

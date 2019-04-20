@@ -29,13 +29,13 @@
  * Technology.
  */
 
-#include "apriltags2_ros/continuous_detector.h"
+#include "apriltags3_ros/continuous_detector.h"
 
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_EXPORT_CLASS(apriltags2_ros::ContinuousDetector, nodelet::Nodelet);
+PLUGINLIB_EXPORT_CLASS(apriltags3_ros::ContinuousDetector, nodelet::Nodelet);
 
-namespace apriltags2_ros
+namespace apriltags3_ros
 {
 
 ContinuousDetector::ContinuousDetector ()
@@ -48,7 +48,7 @@ void ContinuousDetector::onInit ()
   ros::NodeHandle& pnh = getPrivateNodeHandle();
 
   tag_detector_ = std::shared_ptr<TagDetector>(new TagDetector(pnh));
-  draw_tag_detections_image_ = getAprilTagOption<bool>(pnh, 
+  draw_tag_detections_image_ = getAprilTagOption<bool>(pnh,
       "publish_tag_detections_image", false);
   it_ = std::shared_ptr<image_transport::ImageTransport>(
       new image_transport::ImageTransport(nh));
@@ -94,4 +94,4 @@ void ContinuousDetector::imageCallback (
   }
 }
 
-} // namespace apriltags2_ros
+} // namespace apriltags3_ros

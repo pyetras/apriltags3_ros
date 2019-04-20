@@ -12,3 +12,7 @@ float64[] size
 # homography is from at least the four corners of one member tag and at most the
 # four corners of all member tags.
 geometry_msgs/PoseWithCovarianceStamped pose
+
+# Pixel coordinates of the edges of detected QR code in the image. The order is
+# Counter-clockwise, starting at the bottom left edge.
+geometry_msgs/Point[] image_edge

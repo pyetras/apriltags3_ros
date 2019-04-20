@@ -36,7 +36,7 @@
 %   point the camera at the AprilTag bundle such that all the bundle's
 %   individual tags are visible at least once at some point (the more the
 %   better). Run the script, then copy the printed output into the tag.yaml
-%   configuration file of apriltags2_ros.
+%   configuration file of apriltags3_ros.
 %
 % $Revision: 1.0 $
 % $Date: 2017/12/17 13:37:34 $
@@ -119,17 +119,17 @@ invertT = @(T) [T(1:3,1:3)' -T(1:3,1:3)'*T(1:3,4); zeros(1,3) 1];
 N = numel(tag_data.detection);
 for i = 1:N
     this = tag_data.detection(i);
-    
+
     mi = find(this.id == master_id);
     if isempty(mi)
         % Master not detected in this detection, so this particular
         % detection is useless
         continue;
     end
-    
+
     % Get the master tag's rigid body transform to the camera frame
     T_cm = createT(this.p(:,mi), this.q(:,mi));
-    
+
     % Get the rigid body transform of every other tag to the camera frame
     for j = 1:numel(this.id)
         % Skip the master, but get its size first
@@ -141,7 +141,7 @@ for i = 1:N
         if j == mi
             continue;
         end
-        
+
         % Add ID to detected IDs, if not already there
         id = this.id(j);
         if ~ismember(id, other_ids)
@@ -150,18 +150,18 @@ for i = 1:N
             rel_p{end+1} = [];
             rel_q{end+1} = [];
         end
-        
+
         % Find the index in other_ids corresponding to this tag
         k = find(other_ids == id);
         assert(numel(k) == 1, ...
                'Tag ID must appear exactly once in the other_ids array');
-        
+
         % Get this tag's rigid body transform to the camera frame
         T_cj = createT(this.p(:,j), this.q(:,j));
-        
+
         % Deduce this tag's rigid body transform to the master tag's frame
         T_mj = invertT(T_cm)*T_cj;
-        
+
         % Save the relative position and orientation of this tag to the
         % master tag
         rel_p{k}(:,end+1) = T_mj(1:3,4);
@@ -186,7 +186,7 @@ for i = 1:M
     % Compute the mean position as the initial value for the minimization
     % problem
     p_0 = mean(rel_p{i},2);
-    
+
     % Compute the geometric median
     [rel_p_median(:,i),~,exitflag] = ...
                 fminsearch(@(x) geometricMedianCost(rel_p{i}, x), p_0, options);
@@ -200,7 +200,7 @@ end
 rel_q_mean = nan(4, numel(other_ids));
 for i = 1:M
     % Use the method in Landis et al. "Averaging Quaternions", JGCD 2007
-    
+
     % Check the sufficient uniqueness condition
     % TODO this is a computational bottleness - without this check, script
     % returns much faster. Any way to speed up this double-for-loop?
@@ -225,7 +225,7 @@ for i = 1:M
             end
         end
     end
-    
+
     % Average quaternion method
     Q = rel_q{i};
     [V, D] = eig(Q*Q.');
@@ -295,23 +295,23 @@ function q = rotmat2quat(R)
     tr = R(1,1) + R(2,2) + R(3,3);
 
     if tr > 0
-      S = sqrt(tr+1.0) * 2; % S=4*qw 
+      S = sqrt(tr+1.0) * 2; % S=4*qw
       qw = 0.25 * S;
       qx = (R(3,2) - R(2,3)) / S;
-      qy = (R(1,3) - R(3,1)) / S; 
-      qz = (R(2,1) - R(1,2)) / S; 
-    elseif (R(1,1) > R(2,2)) && (R(1,1) > R(3,3)) 
-      S = sqrt(1.0 + R(1,1) - R(2,2) - R(3,3)) * 2; % S=4*qx 
+      qy = (R(1,3) - R(3,1)) / S;
+      qz = (R(2,1) - R(1,2)) / S;
+    elseif (R(1,1) > R(2,2)) && (R(1,1) > R(3,3))
+      S = sqrt(1.0 + R(1,1) - R(2,2) - R(3,3)) * 2; % S=4*qx
       qw = (R(3,2) - R(2,3)) / S;
       qx = 0.25 * S;
-      qy = (R(1,2) + R(2,1)) / S; 
-      qz = (R(1,3) + R(3,1)) / S; 
+      qy = (R(1,2) + R(2,1)) / S;
+      qz = (R(1,3) + R(3,1)) / S;
     elseif (R(2,2) > R(3,3))
       S = sqrt(1.0 + R(2,2) - R(1,1) - R(3,3)) * 2; % S=4*qy
       qw = (R(1,3) - R(3,1)) / S;
-      qx = (R(1,2) + R(2,1)) / S; 
+      qx = (R(1,2) + R(2,1)) / S;
       qy = 0.25 * S;
-      qz = (R(2,3) + R(3,2)) / S; 
+      qz = (R(2,3) + R(3,2)) / S;
     else
       S = sqrt(1.0 + R(3,3) - R(1,1) - R(2,2)) * 2; % S=4*qz
       qw = (R(2,1) - R(1,2)) / S;

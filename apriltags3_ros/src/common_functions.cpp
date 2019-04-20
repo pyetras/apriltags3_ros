@@ -29,28 +29,22 @@
  * Technology.
  */
 
-#include "apriltags2_ros/common_functions.h"
+#include "apriltags3_ros/common_functions.h"
 #include "image_geometry/pinhole_camera_model.h"
+#include <geometry_msgs/Point.h>
 
 #include "common/homography.h"
 #include "tag36h11.h"
-#include "tag36h10.h"
-#include "tag25h9.h"
-#include "tag25h7.h"
-#include "tag16h5.h"
 
-namespace apriltags2_ros
+namespace apriltags3_ros
 {
 
 TagDetector::TagDetector(ros::NodeHandle pnh) :
     family_(getAprilTagOption<std::string>(pnh, "tag_family", "tag36h11")),
-    border_(getAprilTagOption<int>(pnh, "tag_border", 1)),
     threads_(getAprilTagOption<int>(pnh, "tag_threads", 4)),
     decimate_(getAprilTagOption<double>(pnh, "tag_decimate", 1.0)),
     blur_(getAprilTagOption<double>(pnh, "tag_blur", 0.0)),
     refine_edges_(getAprilTagOption<int>(pnh, "tag_refine_edges", 1)),
-    refine_decode_(getAprilTagOption<int>(pnh, "tag_refine_decode", 0)),
-    refine_pose_(getAprilTagOption<int>(pnh, "tag_refine_pose", 0)),
     debug_(getAprilTagOption<int>(pnh, "tag_debug", 0)),
     publish_tf_(getAprilTagOption<bool>(pnh, "publish_tf", false))
 {
@@ -110,28 +104,12 @@ TagDetector::TagDetector(ros::NodeHandle pnh) :
   {
     tf_ = tag36h11_create();
   }
-  else if (family_ == "tag36h10")
-  {
-    tf_ = tag36h10_create();
-  }
-  else if (family_ == "tag25h9")
-  {
-    tf_ = tag25h9_create();
-  }
-  else if (family_ == "tag25h7")
-  {
-    tf_ = tag25h7_create();
-  }
-  else if (family_ == "tag16h5")
-  {
-    tf_ = tag16h5_create();
-  }
   else
   {
+    // TODO: restore support for other families.
     ROS_WARN("Invalid tag family specified! Aborting");
     exit(1);
   }
-  tf_->black_border = (uint32_t)border_;
 
   // Create the AprilTags 2 detector
   td_ = apriltag_detector_create();
@@ -141,8 +119,6 @@ TagDetector::TagDetector(ros::NodeHandle pnh) :
   td_->nthreads = threads_;
   td_->debug = debug_;
   td_->refine_edges = refine_edges_;
-  td_->refine_decode = refine_decode_;
-  td_->refine_pose = refine_pose_;
 
   detections_ = NULL;
 
@@ -166,22 +142,6 @@ TagDetector::~TagDetector() {
   if (family_ == "tag36h11")
   {
     tag36h11_destroy(tf_);
-  }
-  else if (family_ == "tag36h10")
-  {
-    tag36h10_destroy(tf_);
-  }
-  else if (family_ == "tag25h9")
-  {
-    tag25h9_destroy(tf_);
-  }
-  else if (family_ == "tag25h7")
-  {
-    tag25h7_destroy(tf_);
-  }
-  else if (family_ == "tag16h5")
-  {
-    tag16h5_destroy(tf_);
   }
 }
 
@@ -230,6 +190,7 @@ AprilTagDetectionArray TagDetector::detectTags (
   tag_detection_array.header = image->header;
   std::map<std::string, std::vector<cv::Point3d > > bundleObjectPoints;
   std::map<std::string, std::vector<cv::Point2d > > bundleImagePoints;
+  std::map<std::string, std::vector<geometry_msgs::Point> > bundlePixelPoints;
   for (int i=0; i < zarray_size(detections_); i++)
   {
     // Get the i-th detected tag
@@ -262,6 +223,17 @@ AprilTagDetectionArray TagDetector::detectTags (
 
         //===== Corner points in the image frame coordinates
         addImagePoints(detection, bundleImagePoints[bundleName]);
+
+        if (bundle.id2idx_[tagID] == 0) {
+          // If it's the first tag in the bundle also publish image pixels.
+          for (int i=0; i < 4; i++) {
+            geometry_msgs::Point point;
+            point.x = detection->p[i][0];
+            point.y = detection->p[i][1];
+            point.z = 0.;
+            bundlePixelPoints[bundleName].push_back(point);
+          }
+        }
       }
     }
 
@@ -274,7 +246,7 @@ AprilTagDetectionArray TagDetector::detectTags (
     if (!findStandaloneTagDescription(tagID, standaloneDescription,
                                       !is_part_of_bundle))
     {
-      continue; 
+      continue;
     }
 
     //=================================================================
@@ -309,7 +281,7 @@ AprilTagDetectionArray TagDetector::detectTags (
                                                      fx, fy, cx, cy);
     Eigen::Matrix3d rot = transform.block(0, 0, 3, 3);
     Eigen::Quaternion<double> rot_quaternion(rot);
-    
+
     geometry_msgs::PoseWithCovarianceStamped tag_pose =
         makeTagPose(transform, rot_quaternion, image->header);
 
@@ -318,6 +290,15 @@ AprilTagDetectionArray TagDetector::detectTags (
     tag_detection.pose = tag_pose;
     tag_detection.id.push_back(detection->id);
     tag_detection.size.push_back(tag_size);
+
+    for (int i=0; i < 4; i++) {
+      geometry_msgs::Point point;
+      point.x = detection->p[i][0];
+      point.y = detection->p[i][1];
+      point.z = 0.;
+      tag_detection.image_edge.push_back(point);
+    }
+
     tag_detection_array.detections.push_back(tag_detection);
     detection_names.push_back(standaloneDescription->frame_name());
   }
@@ -354,6 +335,10 @@ AprilTagDetectionArray TagDetector::detectTags (
       tag_detection.pose = bundle_pose;
       tag_detection.id = bundle.bundleIds();
       tag_detection.size = bundle.bundleSizes();
+
+      std::copy(bundlePixelPoints[bundleName].begin(),
+        bundlePixelPoints[bundleName].end(),
+        std::back_inserter(tag_detection.image_edge));
       tag_detection_array.detections.push_back(tag_detection);
       detection_names.push_back(bundle.name());
     }
@@ -653,14 +638,14 @@ std::vector<TagBundleDescription > TagDetector::parseTagBundles (
     }
     TagBundleDescription bundle_i(bundleName);
     ROS_INFO("Loading tag bundle '%s'",bundle_i.name().c_str());
-    
+
     ROS_ASSERT(bundle_description["layout"].getType() ==
                XmlRpc::XmlRpcValue::TypeArray);
     XmlRpc::XmlRpcValue& member_tags = bundle_description["layout"];
 
     // Loop through each member tag of the bundle
     for (int32_t j=0; j<member_tags.size(); j++)
-    {      
+    {
       ROS_ASSERT(member_tags[j].getType() == XmlRpc::XmlRpcValue::TypeStruct);
       XmlRpc::XmlRpcValue& tag = member_tags[j];
 
@@ -675,9 +660,9 @@ std::vector<TagBundleDescription > TagDetector::parseTagBundles (
       StandaloneTagDescription* standaloneDescription;
       if (findStandaloneTagDescription(id, standaloneDescription, false))
       {
-        ROS_ASSERT(size == standaloneDescription->size()); 
+        ROS_ASSERT(size == standaloneDescription->size());
       }
-      
+
       // Get this tag's pose with respect to the bundle origin
       double x  = xmlRpcGetDoubleWithDefault(tag, "x", 0.);
       double y  = xmlRpcGetDoubleWithDefault(tag, "y", 0.);
@@ -766,4 +751,4 @@ bool TagDetector::findStandaloneTagDescription (
   return true;
 }
 
-} // namespace apriltags2_ros
+} // namespace apriltags3_ros

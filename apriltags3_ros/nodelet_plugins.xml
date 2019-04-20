@@ -1,9 +1,9 @@
 <library path="lib/libcontinuous_detector">
-    <class name="apriltags2_ros/ContinuousDetector"
-        type="apriltags2_ros::ContinuousDetector"
+    <class name="apriltags3_ros/ContinuousDetector"
+        type="apriltags3_ros::ContinuousDetector"
 		base_class_type="nodelet::Nodelet">
 		<description>
-          Continuous AprilTags 2 detector
+          Continuous AprilTags 3 detector
 		</description>
 	</class>
 </library>

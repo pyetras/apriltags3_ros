@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(apriltags2_ros)
+project(apriltags3_ros)
 
 find_package(catkin REQUIRED COMPONENTS
-  apriltags2
+  apriltags
   geometry_msgs
   image_transport
   image_geometry
@@ -62,7 +62,7 @@ generate_messages(
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS apriltags2 geometry_msgs image_transport roscpp sensor_msgs std_msgs message_runtime cv_bridge tf nodelet pluginlib
+  CATKIN_DEPENDS apriltags geometry_msgs image_transport roscpp sensor_msgs std_msgs message_runtime cv_bridge tf nodelet pluginlib
   DEPENDS Eigen OpenCV
 )
 

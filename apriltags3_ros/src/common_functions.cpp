@@ -157,14 +157,6 @@ AprilTagDetectionArray TagDetector::detectTags (
                                   .buf = gray_image.data
   };
 
-  cv::Mat sharpen_kernel(3,3,CV_32F,cv::Scalar(0));
-  sharpen_kernel.at<float>(1,1)=5.0;
-  sharpen_kernel.at<float>(0,1)=-1.0;
-  sharpen_kernel.at<float>(2,1)=-1.0;
-  sharpen_kernel.at<float>(1,0)=-1.0;
-  sharpen_kernel.at<float>(1,2)=-1.0;
-  cv::filter2D(gray_image, gray_image, gray_image.depth(), sharpen_kernel);
-
   image_geometry::PinholeCameraModel camera_model;
   camera_model.fromCameraInfo(camera_info);
 
